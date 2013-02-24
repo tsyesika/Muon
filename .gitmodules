@@ -1,0 +1,3 @@
+[submodule "PyPump"]
+	path = PyPump
+	url = git@github.com:xray7224/PyPump.git
