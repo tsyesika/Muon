@@ -116,6 +116,8 @@ class Configuration:
 			raise AttributeError
 
 	def __setitems__(self, key, value):
+		if type(value) in [types.ListType, types.DictType]:
+			value = ChildItem(value)
 		self.data[key] = value
 		self.save()
 
@@ -217,6 +219,17 @@ class Configuration:
 		else:
 			raise ConfigurationException()
 	
+class ChildItem(Configuration):
+	
+	def __init__(self, value, parent=None):
+		self.data = value
+		self.type = type(value)
+		self.parent = parent
+
+	def save(self):
+		if None == parent:
+			raise ConfigurationError("No parent on child")
+		super(Configuration, self.parent).save()
 
 # produce effectively a singleton
 configuration = Configuration()
