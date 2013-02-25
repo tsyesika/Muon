@@ -1,5 +1,9 @@
 import curses
+import locale
 from time import sleep
+
+locale.resetlocale(locale.LC_ALL)
+code = locale.getpreferredencoding()
 
 class Muon:
     def __init__(self):
