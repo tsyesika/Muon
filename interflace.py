@@ -1,4 +1,5 @@
 import curses
+from time import sleep
 
 class Muon:
     def __init__(self):
@@ -12,6 +13,7 @@ class Muon:
         win.border()
         screen.border()
         running = True
+        screen.nodelay(1)
 
         while running:
             screen.refresh()
@@ -25,6 +27,8 @@ class Muon:
                     del win
                 except:
                     pass
+            sleep(0.1)
+
 
 if __name__ == '__main__':
     interflace = Muon()
