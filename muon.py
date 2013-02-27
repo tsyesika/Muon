@@ -10,7 +10,8 @@ from PyPump.PyPump import PyPump
 import configuration
 
 class Muon:
-    pass
+def __init__(self):
+# initate the GUI
 
 if __name__ == "__main__":
     muon = Muon()
