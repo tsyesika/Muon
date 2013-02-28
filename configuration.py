@@ -17,7 +17,6 @@
 
 import json
 import os
-import types
 
 class ConfigurationException(Exception):
     pass # meh
@@ -27,7 +26,7 @@ class Configuration:
     def __init__(self):
         self.fpath = os.path.expanduser(self.FILE)
 
-        if os.path.isfile(self.FILE):
+        if os.path.isfile(self.fpath):
             # file exists, lets read the data on it.
             self.config_file = open(self.fpath, "r")
             self.data = json.loads(self.config_file.read())
@@ -43,7 +42,7 @@ class Configuration:
         self.type = type(self.data)
 
     def __add__(self, value):
-        if self.type in [types.ListType]:
+        if self.type in [list]:
             self.value.__add__(value)
         else:
             raise AttributeError
@@ -69,12 +68,12 @@ class Configuration:
         return self.data > other
 
     def iadd(self, value):
-        if self.type in [types.ListType]:
+        if self.type in [list]:
             self.data += value    
         else:
             raise AttributeError
     def imul(self, value):
-        if self.type in [types.ListType]:
+        if self.type in [list]:
             self.data *= value
         else:
             raise AttributeError
@@ -92,7 +91,7 @@ class Configuration:
         return self.data < other
 
     def __mul__(self, other):
-        if self.type in [types.ListTypes]:
+        if self.type in [lists]:
             return self.data * other
         else:
             raise AttributeError
@@ -104,19 +103,19 @@ class Configuration:
         return repr(self.data)
 
     def __reversed__(self):
-        if self.type in [types.ListType]:
+        if self.type in [list]:
             return self.data[::-1]
         else:
             raise AttributeError
 
     def __rmul__(self, other):
-        if self.type in [types.ListType]:
+        if self.type in [list]:
             return n * self.data
         else:
             raise AttributeError
 
     def __setitems__(self, key, value):
-        if type(value) in [types.ListType, types.DictType]:
+        if type(value) in [list, dict]:
             value = ChildItem(value)
         self.data[key] = value
         self.save()
@@ -126,7 +125,7 @@ class Configuration:
         return self.data.__sizeof__()
 
     def clear(self):
-        if self.data in [types.DictType]:
+        if self.data in [dict]:
             return self.data.clear()
         else:
             raise AttributeError
@@ -141,37 +140,37 @@ class Configuration:
             raise AttributeError
 
     def fromkeys(self, other, value=None):
-        if self.type in [types.DictType]:
+        if self.type in [dict]:
             return self.data.fromkeys(other, value)
         else:
             raise AttributeError
     
     def get(self, key, data=None):
-        if self.type in [types.DictType]:
+        if self.type in [dict]:
             return self.data.get(key, data)
         else:
             raise AttributeError
 
     def index(self, value, start=0, stop=None):
-        if self.type in [types.ListType]:
+        if self.type in [list]:
             return self.data.index(value, start, stop)
         else:
             raise AttributeError
 
     def insert(self, index, value):
-        if self.type in [types.ListType]:
+        if self.type in [list]:
             return self.data.insert(index, value)
         else:
             raise AttributeError
 
     def items(self):
-        if self.type in [types.DictType]:
+        if self.type in [dict]:
             return self.data.items()
         else:
             raise AttributeError
 
     def keys(self):
-        if self.type in [types.DictType]:
+        if self.type in [dict]:
             return self.data.keys()
         else:
             raise AttributeError
@@ -180,25 +179,25 @@ class Configuration:
         return self.data.pop(key, d)
 
     def popitem(self, key, value):
-        if self.type in [types.DictTypes]:
+        if self.type in [dicts]:
             return self.data.popitem(key, value)
         else:
             raise AttributeError
 
     def setdefault(self, key, default):
-        if self.type in [types.DictType]:
+        if self.type in [dict]:
             return self.setdefault(key, default)
         else:
             raise AttributeError
 
     def update(self, e, **f):
-        if self.type in [types.DictType]:
+        if self.type in [dict]:
             return self.data.update(e, f)
         else:
             raise AttributeError
     
     def values(self):
-        if self.type in [types.DictType]:
+        if self.type in [dict]:
             return self.data.values()
         else:
             raise AttributeError
