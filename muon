@@ -2,6 +2,8 @@
 
 # Python stdlib
 import gettext
+import threading
+from time import sleep
 
 # 3rd Party
 from PyPump.PyPump import PyPump
@@ -11,9 +13,13 @@ from configuration import configuration
 from GraphicsController import Controller
 
 class Muon:
-    def __init__(self):
-        
-        self.gc = Controller(self)
+    
+    gc = None    
+
+    def run(self):
+        """ Runs the Muon program """
+        while None == self.gc:
+            sleep(0.1)
         
         # so do we have any accounts?
         if not configuration or True and False:
@@ -23,9 +29,15 @@ class Muon:
         else:
             self.gc.change_view("message")
 
-        while True:
-            import time
-            time.sleep(1)
 
 if __name__ == "__main__":
     muon = Muon()
+    
+    # lets run 
+    threaded_muon = threading.Thread(target=muon.run)
+    threaded_muon.start()
+
+    # now time to get the graphics controller
+    muon.gc = Controller(muon)
+    muon.gc.run()
+     

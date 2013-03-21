@@ -29,7 +29,7 @@ class View():
         """ Handles input """
         if "q" == key:
             # quitting
-            pass
+            self.display.exit()
 
         elif "e" == key:
             # add an example

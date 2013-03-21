@@ -5,6 +5,8 @@ from glob import glob
 import os
 import threading
 
+from urwid import ExitMainLoop
+
 class ControllerException(Exception):
     pass
 
@@ -20,10 +22,10 @@ class Controller:
 
         self.backend = backend
         self.display = Display(self)
-        
-        self.display_thread = threading.Thread(target=self.display.run)
-        self.display_thread.start()
-
+    
+    def run(self):
+        self.display.run()
+    
     def change_view(self, view):
         """ Will change the view """
         # does the view we want exist?
@@ -43,7 +45,8 @@ class Controller:
             that requires change on the backend
         """
         # for now just pass it across it to display
-        self._view.input_handler(key)
+        if self._view:
+            self._view.input_handler(key)
 
     def load_views(self):
         """ This will load the views """
@@ -56,3 +59,10 @@ class Controller:
         base_name = os.path.basename(path)
         name = os.path.splitext(base_name)[0]
         return name
+
+    def exit(self):
+        """ Extis """
+        if self._view:
+            # give them a chance to clear up.
+            self.display.clear()
+        raise ExitMainLoop

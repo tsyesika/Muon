@@ -13,7 +13,7 @@ class Display():
 
     def __init__(self, gc):
         """ Initalises the display """
-        self.gc = gc
+        self._gc = gc
         self._background = urwid.SolidFill()
         self._display = urwid.MainLoop(
                                 self._background,
@@ -43,13 +43,16 @@ class Display():
 
     def input_handler(self, key):
         """ Hands the input back to the graphics controller """
-        self.gc.handle_input(key)
+        self._gc.handle_input(key)
 
     def add_widget(self, widget):
         """ This will add a widget to the display """
-        self.elements.append(widget)
-        self._display.widget.original_widget.contents.append(
+        self._elements.append(widget)
+        self._display.widget.original_widget.contents.append((
             widget,
             self._display.widget.original_widget.options()
-        )        
+        )) 
 
+    def exit(self):
+        """ Passes the exit to GraphicsController """
+        self._gc.exit()
