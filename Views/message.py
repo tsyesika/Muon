@@ -1,20 +1,12 @@
 import urwid
 import sys
 
-class Message():
-    pallet = [
-        ('bg', 'white', 'black'),
-        ('focus', 'black', 'light gray'),
-        ('normal', 'default', 'black')
-    ]
-
-    def __init__(self):
+class View():
+  
+    def __init__(self, display):
         """ initalised the curses interface """
-        self.background = urwid.SolidFill()
-        self.loop = urwid.MainLoop(self.background, self.pallet, unhandled_input=self.input_handler)
-        
-        # make the pile of notes
-        self.notes = urwid.Pile([], 0)
+        self.display = display
+        self.notes = urwid.Pile([], 0) # all the notes
         self.collection = urwid.Filler(
                 urwid.Padding(self.notes, align='left', left=10, right=10),
                 'top',
@@ -22,12 +14,7 @@ class Message():
                 bottom=10
         )        
         
-        # attach the background & pile
-        self.loop.widget = urwid.AttrMap(self.background, 'bg')
-        self.loop.widget.original_widget = self.collection
-
-    def run(self):
-        self.loop.run() 
+        self.display.add_widget(self.collection)
 
     def refocus(self, focus):
         """ Applies focuses """
@@ -42,7 +29,8 @@ class Message():
         """ Handles input """
         if "q" == key:
             # quitting
-            raise urwid.ExitMainLoop
+            pass
+
         elif "e" == key:
             # add an example
             self.notes.contents.insert(0, (urwid.AttrMap(urwid.Text('[Tsyesika] Blah '), 'normal'), self.notes.options()))     
@@ -60,4 +48,3 @@ class Message():
                 self.notes.contents.focus = 0
             self.refocus(self.notes.contents.focus)
         
-view = Message()

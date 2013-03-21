@@ -8,22 +8,24 @@ from PyPump.PyPump import PyPump
 
 # Muon
 from configuration import configuration
-from interface import interface
+from GraphicsController import Controller
 
 class Muon:
     def __init__(self):
         
-        self.interface = interface
+        self.gc = Controller(self)
         
         # so do we have any accounts?
-        if not configuration or True:
+        if not configuration or True and False:
             # okay lets tell the interface to display the 
             # new account view
-            self.interface.change_view("new_account")
-            self.interface.get_view().run()
+            self.gc.change_view("new_account")
         else:
-            self.interface.change_view("message")
-            self.interface.get_view().run()
+            self.gc.change_view("message")
+
+        while True:
+            import time
+            time.sleep(1)
 
 if __name__ == "__main__":
     muon = Muon()
