@@ -61,8 +61,8 @@ class Configuration:
     def __ge__(self, other):
         return self.data >= other
     
-    def __getitem(self, key):
-        return self.data[key]
+    def __getitem__(self, key):
+        return self.data.__getitem__(key)
     
     def __gt__(self, other):
         return self.data > other
@@ -119,7 +119,7 @@ class Configuration:
             value = ChildItem(value)
         self.data[key] = value
         self.save()
-
+   
     def __sizeof__(self):
         # this isn't strictly right but *shrugs*
         return self.data.__sizeof__()

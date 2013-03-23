@@ -3,6 +3,8 @@
 # Python stdlib
 import gettext
 import threading
+import re
+import sys
 from time import sleep
 
 # 3rd Party
@@ -12,9 +14,26 @@ from PyPump.PyPump import PyPump
 from configuration import configuration
 from GraphicsController import Controller
 
+class Pump(PyPump):
+    def set_client(self, client):
+        """ This sets the client so PyPump can ask the client to do things. """
+        self._client = client
+
+    def get_access(self, token):
+        """ This is called to ask the user to enter the varifer 
+        The endpoint is: https://{server}/oauth/authorize?oauth_token={token}
+        """
+        verifer = self._client.get_verifier(token)
+        
+        # clean it a little.
+        verifier = verifier.replace(" ", "")
+        return verifier
+
 class Muon:
     
-    gc = None    
+    gc = None
+    pump = None
+    webfinger = ""
 
     def run(self):
         """ Runs the Muon program """
@@ -22,13 +41,100 @@ class Muon:
             sleep(0.1)
         
         # so do we have any accounts?
-        if not configuration or True and False:
-            # okay lets tell the interface to display the 
-            # new account view
-            self.gc.change_view("new_account")
-        else:
-            self.gc.change_view("message")
+        """
+        if not configuration or not ( 
+            self.webfinger in configuration
+            or  "oauth" in configuration[self.webfinger] 
+            or "client_id" in configuration[self.webfinger]["oauth"] 
+            or "client_secret" in configuration[self.webfinger]["oauth"]): 
+            
+            self.register_client()
+            self.save_client()
+            self.save_tokens()
+        
+        elif not ("token" in configuration[self.webfinger]["oauth"] or ["token_secret"] in configuration[self.webfinger]["oauth"]):
+            self.request_tokens()
+            self.save_tokens()     
+        else:"""
+        self.webfinger = "Tsyesika@pump.megworld.co.uk"
+        self.initalise_pump() 
+        self.gc.change_view("message")
 
+        # okay lets get pumping
+        # cheesey right?
+        sleep(1)
+        while True:
+            pumps = self.pump.inbox()
+            for note in pumps["items"][::-1]:
+                self.gc.controller().post_note(note)
+            self.gc.controller().update()
+            sleep(120)
+
+    def exit(self):
+        """ Tells this to exit """
+        sys.exit()
+
+    def register_client(self):
+        """ Okay this is to register the client """
+        self.gc.change_view("register_client")
+        while not self.webfinger:
+            sleep(0.1)
+        self.pump(self.webfinger, client_name="Muon")
+
+    def request_tokens(self):
+        """ Gets access tokens for account """
+        if self.pump:
+            return False
+
+        self.pump = Pump(self.webfinger, 
+                    key=configuration[self.webfinger]["oauth"]["client_id"], 
+                    secret=configuration[self.webfinger]["oauth"]["client_secret"]
+                    )
+    
+    def initalise_pump(self):
+        """ This is only for pump initalisation for when we have all the data """
+        self.pump = Pump(
+                self.webfinger,
+                key=configuration[self.webfinger]["oauth"]["client_id"],
+                secret=configuration[self.webfinger]["oauth"]["client_secret"],
+                token=configuration[self.webfinger]["oauth"]["token"],
+                token_secret=configuration[self.webfinger]["oauth"]["token_secret"]
+        )
+
+    ## saving to the config methods
+    def save_client(self):
+        """ This will save the CLIENT registration data """
+        config = configuration[self.webfinger]["oauth"]
+        data = self.pump.get_registration()
+        config["client_id"] = data[0]
+        config["client_secret"] = data[1]
+        config["client_expirey"] = data[2]
+    
+    def save_tokens(self):
+        """ This will save the tokens """
+        config = configuration[self.webfinger]["oauth"]
+        data = self.pump.get_token()
+        config["token"] = data[0]
+        config["token_secret"] = data[1]
+
+    ## setters for verious things.
+    def set_webfinger(self, webfinger):
+        """ Sets the webfinger e.g. username@example.com """
+        self.webfinger = webfinger
+
+    def get_verifer(self, token):
+        """ This should change the display to get the verifier 
+        once got it should return it
+        """
+        self.gc.change_view("get_verifier", token)
+        # setup a nonsense veriable for it to come in
+        self.verifer = ""
+        
+        while not self.verifer:
+            sleep(0.1)
+        
+        # we should have it
+        return self.verifier
 
 if __name__ == "__main__":
     muon = Muon()

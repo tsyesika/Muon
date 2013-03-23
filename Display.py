@@ -32,6 +32,10 @@ class Display():
         """ Displays the Display (yes, seriously) """
         self._display.run()
 
+    def redraw(self):
+        """ Use with care """
+        self._display.draw_screen()
+
     def clear(self):
         """ Clears the elements off the display """
         # go through rmeoving the reference
@@ -44,6 +48,9 @@ class Display():
     def input_handler(self, key):
         """ Hands the input back to the graphics controller """
         self._gc.handle_input(key)
+
+    def update(self, screen):
+        self._gc.update(screen)
 
     def add_widget(self, widget):
         """ This will add a widget to the display """
