@@ -63,13 +63,14 @@ class Muon:
         # okay lets get pumping
         # cheesey right?
         sleep(1)
+        # first time we wanna flip, all other times we don't
         while True:
             pumps = self.pump.inbox()
-            for note in pumps["items"]:
+            for note in pumps["items"][::-1]:
                 if not self.gc.controller().post_note(note):
                     pass #break # we don't want to try every note, just until they're the same
             self.gc.controller().update()
-            sleep(120)
+            sleep(30)
 
     def exit(self):
         """ Tells this to exit """

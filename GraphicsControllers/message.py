@@ -2,6 +2,8 @@
 import time
 import re
 
+from hashlib import sha1
+
 class Controller:
 
     """
@@ -100,13 +102,19 @@ class Controller:
         if "" == self.__focus:
             return None
         return self.__focus
+    def createID(self, note):
+        """ The ID given is for the item not the act so we need to make one """
+        hashable = str(note)
+        hashable = hashable.encode()
+        return sha1(hashable).hexdigest()
 
     def post_note(self, note):
         """ Takes note object """
-        oid = note["object"]["id"].split(":", 1)[1] # object id
+        oid = self.createID(note) # object id
         for item in self._screen:
             if item["id"] == oid:
-                return False# don't want duplicates
+                return False # don't want duplicates
+
         content = self.convertHTML(note["content"])
         content = self.fixJPopeBug(content)
         ts = time.time() # please fix me
@@ -114,20 +122,27 @@ class Controller:
         try:
             actor = note["actor"]["preferredUsername"]
         except:
-            actor = "[Unknown]"
+            actor = "Unknown"
         
+        # decide on the focus
+        focus = False
+        if self.__focus == note["object"]["id"]:
+            focus = True
+ 
         # okay now make the dict and add it to the screen
         item = {
             "id":oid,
             "actor":actor,
             "content":content,
             "time":ts,
-            "focus":False
+            "focus":focus
         }
 
-        self._screen.append(item) 
+      
+        
+        self._screen.insert(0, item) 
         # for now we'll fix it at 25 items
-        self._screen = self._screen[:25]
+        self.update()
         return True # to say we added it
 
     def update(self):
