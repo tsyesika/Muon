@@ -11,42 +11,105 @@ class Controller:
             "id":"SomeObjectID"
             "actor":"Tsyesika",
             "content":"Message",
-            "time":1363985334.709884
+            "time":1363985334.709884,
+            "focus":False # must only be set on one.
         }
     ]
     This must be a list to preserve order
     """
     _screen = [] # what's on the screen and where
     _keymap = {}
+    
+    ##
+    # This is for which item is in focus
+    # This is for internal use ONLY
+    # -
+    # The reason for this being the ID and not just an int
+    # is for when notes are added later, if we save it to the config
+    # later on and most importantly, when you hit enter it should take
+    # you to a page for that item, so much easier with an ID.
+    ##
+    __focus = ""
 
     def __init__(self, master):
         """ Initalises graphics controller and takes the master GC """
         self.master = master
         self.HTMLStripper = re.compile(r'<[^<]+?>')
 
+    def idToIndex(self, item_id):
+        """ This convers the id to the index in the Pile """
+        # returns None if no item is in focus
+        if "" == item_id:
+            return None
+
+        for index, item in enumerate(self._screen):
+            if item["id"] == item_id:
+                return index
+
+    def log(self, msg):
+        f = open("log.txt", "a")
+        f.write("%s\n" % msg)
+        f.close()
+
     def handle_input(self, key):
         """ Handles the input for the view """
-        pass
+        # Selecting needs to work.
+        if "down" == key:
+            if "" == self.__focus:
+                self.__focus = self._screen[0]["id"]
+                self._screen[0]["focus"] = True
+                self.update()
+                return
 
-    def remove_filter(self, f):
-        """ Filters the notes on the screen - mainly used for removing ignored items 
-            if the attribute isn't set it will ignore it when filtering
-            NB: if it matches the fillter it WILL be removed.
-        """
-        for item in self._screen:
-            for key in f.keys():
-                if key in item and self._screen[key] == f[key]:
-                    self._screen.remove(item)
+            index = self.idToIndex(self.__focus) 
+            try:
+                self._screen[index]["focus"] = False
+                index += 1
+                self.__focus = self._screen[index]["id"]
+                self._screen[index]["focus"] = True
+            except:
+                self.__focus = self._screen[0]["id"]
+                self._screen[0]["focus"] = True
+
+        if "up" == key:
+            if "" == self.__focus:
+                self.__focus = self._screen[0]["id"]
+                self._screen[0]["focus"] = True
+                self.update()
+                return
+            index = self.idToIndex(self.__focus)
+            if index <= 0:
+                self._screen[index]["focus"] = False
+                index = len(self._screen)-1
+                self.__focus = self._screen[index]["id"]
+                self._screen[index]["focus"] = True
+            else:
+                self._screen[index]["focus"] = False
+                index -= 1
+                self.__focus = self._screen[index]["id"]
+                self._screen[index]["focus"] = True
+
+        elif "i" == key:
+            # ignore.
+            pass
+       
+        self.update()
+     
+    def get_focus(self):
+        """ returns the ID of which item is in focus (or None if no item is in focus) """
+        if "" == self.__focus:
+            return None
+        return self.__focus
 
     def post_note(self, note):
         """ Takes note object """
         oid = note["object"]["id"].split(":", 1)[1] # object id
         for item in self._screen:
             if item["id"] == oid:
-                return # don't want duplicates
+                return False# don't want duplicates
         content = self.convertHTML(note["content"])
         content = self.fixJPopeBug(content)
-        ts = time.time()
+        ts = time.time() # please fix me
         #ts = self.convertTime(note["object"]["published"])
         try:
             actor = note["actor"]["preferredUsername"]
@@ -59,12 +122,13 @@ class Controller:
             "actor":actor,
             "content":content,
             "time":ts,
+            "focus":False
         }
 
-        self._screen.insert(0, item) # adds it to the top 
-        
+        self._screen.append(item) 
         # for now we'll fix it at 25 items
         self._screen = self._screen[:25]
+        return True # to say we added it
 
     def update(self):
         """ Updates the screen """

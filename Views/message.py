@@ -1,7 +1,9 @@
 import urwid
 import sys
 
-class View():
+from Views.abstract import View as Abstract_View
+
+class View(Abstract_View):
   
     def __init__(self, display):
         """ initalised the curses interface """
@@ -16,53 +18,25 @@ class View():
         
         self.display.add_widget(self.collection)
 
-    def refocus(self, focus):
-        """ Applies focuses """
-        for number, item, in enumerate(self.notes.contents):
-            if number == focus:
-                # apply the focus
-                self.notes.contents[number][0].set_attr_map({None:'focus'})
-            else:
-                self.notes.contents[number][0].set_attr_map({None:'normal'})
- 
+    def clear(self):
+        """ Clears the screen """
+        self.notes.contents = []
+
     def update(self, screen):
-        # remove the old stuff
-        for item in self.notes.contents:
-            self.notes.contents.remove(item)
         # add new
         for item in screen:
+            style = "normal"
+            if item["focus"]:
+               style = "focus"
+
             self.notes.contents.append(
                 (urwid.AttrMap(
                     urwid.Text(
                         item["content"]
-                        ), "normal"
+                        ), style
                     ),
                  self.notes.options())
             )
  
         # finally we'll force draw the screen
         self.display.redraw()
-    def input_handler(self, key):
-        """ Handles input """
-        if "c" == key:
-            self.display.clear()
-            self.__init__(self.display)
-        elif "e" == key:
-            # add an example
-            self.notes.contents.insert(0, (urwid.AttrMap(urwid.Text('[Tsyesika] Blah '), 'normal'), self.notes.options()))     
-        elif "up" == key:
-            try:
-                self.notes.contents.focus -= 1
-            except:
-                self.notes.contents.focus = len(self.notes.contents)-1
-            self.refocus(self.notes.contents.focus)
-            
-        elif "down" == key:
-            try:
-                self.notes.contents.focus += 1
-            except:
-                self.notes.contents.focus = 0
-            self.refocus(self.notes.contents.focus)
-    
-    def __del__(self):
-        pass 

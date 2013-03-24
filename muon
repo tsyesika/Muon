@@ -65,8 +65,9 @@ class Muon:
         sleep(1)
         while True:
             pumps = self.pump.inbox()
-            for note in pumps["items"][::-1]:
-                self.gc.controller().post_note(note)
+            for note in pumps["items"]:
+                if not self.gc.controller().post_note(note):
+                    pass #break # we don't want to try every note, just until they're the same
             self.gc.controller().update()
             sleep(120)
 
