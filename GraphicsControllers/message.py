@@ -117,8 +117,8 @@ class Controller:
 
         content = self.convertHTML(note["content"])
         content = self.fixJPopeBug(content)
-        ts = time.time() # please fix me
-        #ts = self.convertTime(note["object"]["published"])
+        ts = self.convertTime(note["object"]["published"])
+        ts = self.convertHumanTime(ts)
         try:
             actor = note["actor"]["preferredUsername"]
         except:
@@ -151,9 +151,70 @@ class Controller:
 
     def convertTime(self, ts):
         """ Converts a time to a unix timestamp """
-        ts = time.strptime("%Y-%m-%dT%H:%M:%SZ", ts)
-        return ts
-    
+        ts = time.strptime(ts, "%Y-%m-%dT%H:%M:%SZ")
+        return time.mktime(ts)
+
+    def convertHumanTime(self, ts):
+        """ Takes a unix time stamp and converts it to human time """
+        t = time.time()-ts # difference from current time and posted time
+        
+        if t < 60:
+            return "Less than a minute"
+        elif (t / 60) <= 60:
+            # a hour
+            m = int(t/60.0 + .5) # .5 to avoid floor rounding.
+            if m <= 1:
+                return "A minute"
+            else:
+                return "%s minutes" % m
+        elif ((t / 60) / 60) <= 24:
+            # a day
+            h = int(t / 60.0 / 60.0 + 0.5)
+            if h <= 1:
+                return "An hour"
+            else:
+                return "%s hours" % h
+        elif (((t / 60) / 60) / 24) <= 7:
+            # a week
+            d = int(t / 60.0 / 60.0 / 24.0 + 0.5)
+            if d <= 1:
+                return "A day"
+            else:
+                return "%s days" % d
+        elif ((((t / 60) / 60) / 24) / 7) <= 4:
+            # a month (29 days, lowest except 28)
+            w = int(t / 60.0 / 60.0 / 24.0 / 7.0 + 0.5)
+            if w <= 1:
+                return "A week"
+            else:
+                return "%s weeks" % w
+        elif (((t / 60) / 60) / 24) <= 365 :
+            # a year
+            m = int(t / 60.0 / 60.0 / 24.0 / 7.0 / 4.0 + 0.5)
+            if m <= 1:
+                return "A month"
+            else:
+                return "%s months" % m
+        elif ((((t / 60) / 60) / 24) / 365) <= 10:
+            # a decade (decade - century)
+            y = int(t / 60.0 / 60.0 / 24.0 / 365.0 + 0.5)
+            if y <= 1:
+                return "A year"
+            else:
+                return "%s years" % y
+        elif ((((t / 60) / 60) / 24) / 365) <= 100:
+            # a century
+            d = int(t / 60.0 / 60.0 / 24.0 / 365.0 / 10 + 0.5)
+            if d <= 1:
+                return "A decade"
+            else:
+                return "%s decades" % y
+        else:
+            c = int(t / 60.0 / 60.0 / 24.0 / 365.0 / 100.0 + 0.5)
+            if c <= 1:
+                return "A century"
+            else:
+                return "%s centuries" % c
     def convertHTML(self, content):
         """ Convers the content of a message from HTML to an outputtable form """
         # for now lets just handle <br />

@@ -30,13 +30,19 @@ class View(Abstract_View):
                style = "focus"
 
             self.notes.contents.append(
-                (urwid.AttrMap(
-                    urwid.Text(
-                        item["content"]
+                (urwid.Columns([
+                    urwid.AttrMap(urwid.Text(
+                        item["content"],
+                        align="left"
+                        ), style),
+                    urwid.AttrMap(urwid.Text(
+                        item["time"],
+                        align="right"
                         ), style
-                    ),
-                 self.notes.options())
+                    ), 
+                ]), self.notes.options())
             )
+           
  
         # finally we'll force draw the screen
         self.display.redraw()
