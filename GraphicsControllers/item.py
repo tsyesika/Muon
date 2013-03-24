@@ -10,18 +10,24 @@ class Controller:
     Screen will contain (example):
     [
         {
-            "id":"SomeObjectID"
-            "actor":"Tsyesika",
-            "content":"Message",
-            "time":1363985334.709884,
-            "focus":False # must only be set on one.
+            "note":"This is a note",
+            "comments":[
+                {
+                    "content":"This is the first comment",
+                    "time":123456789.0
+                },
+                {
+                    "content":"This is the second comment",
+                    "time":987654321.0
+                }
         }
     ]
     This must be a list to preserve order
     """
     _screen = [] # what's on the screen and where
     _keymap = {}
-    
+    _active_id = "" # id of active item
+
     ##
     # This is for which item is in focus
     # This is for internal use ONLY
@@ -38,14 +44,6 @@ class Controller:
         self.master = master
         self.HTMLStripper = re.compile(r'<[^<]+?>')
 
-    def set_focus(self, oid):
-        """ Sets the focus based on an object id """
-        self.__focus = oid
-
-    def populate(self):
-        """ Populates view with what's needed """
-        self.master.backend.meanwhile()
-
     def idToIndex(self, item_id):
         """ This convers the id to the index in the Pile """
         # returns None if no item is in focus
@@ -60,9 +58,6 @@ class Controller:
         f = open("log.txt", "a")
         f.write("%s\n" % msg)
         f.close()
-
-    def get_name(self):
-        return "message"
 
     def handle_input(self, key):
         """ Handles the input for the view """
@@ -101,82 +96,101 @@ class Controller:
                 index -= 1
                 self.__focus = self._screen[index]["id"]
                 self._screen[index]["focus"] = True
-
-        elif "enter" == key and self.__focus:
-            # okay we want to switch views to item view.
-            pumpid = self.get_focused_pumpid()
-            self.master.change_view("item")
-            self.master.backend.get_item(pumpid)
-            return 
+        
+        elif "left":
+            # change back to message view
+            self.master.back_view()
+            return
 
         elif "i" == key:
             # ignore.
             pass
        
         self.update()
-     
-    def get_focused_pumpid(self):
-        """ Gets the pump id for a focused item or returns None if nothing is in focus """
-        if not self.__focus:
-            return None
-
-        for note in self._screen:
-            if note["id"] == self.__focus:
-                return note["pumpid"]
 
     def get_focus(self):
         """ returns the ID of which item is in focus (or None if no item is in focus) """
         if "" == self.__focus:
             return None
         return self.__focus
+    
     def createID(self, note):
         """ The ID given is for the item not the act so we need to make one """
         hashable = str(note)
         hashable = hashable.encode()
         return sha1(hashable).hexdigest()
 
-    def post_note(self, note):
-        """ Takes note object """
-        oid = self.createID(note) # object id
-        for item in self._screen:
-            if item["id"] == oid:
-                return False # don't want duplicates
+    def new_comment(self, comment):
+        """ Adds a new comment to the screen """
+        oid = self.createID(comment)
+        content = comment.convertHTML(comment["content"])
+    
+        time = self.convertTime(comment["published"])
+        time = self.convertHumanTime(time)
+    
+        try:
+            actor = comment["author"]["preferredUsername"]
+            actor = self.fixJPopeBug(actor)
+        except:
+            actor = "Unkown"
 
-        content = self.convertHTML(note["content"])
-        content = self.fixJPopeBug(content)
-        ts = self.convertTime(note["object"]["published"])
-        ts = self.convertHumanTime(ts)
+        actor = "[%s]" % actor
+
+        self._screen["comments"].append(
+            {
+                "id":oid,
+                "pumpid":comment["id"],
+                "actor":actor,
+                "content":content,
+                "time":time
+            }
+        )
+   
+    def get_name(self):
+        return "item"
+
+    def new_item(self, item):
+        """ Adds a new note to the screen """
+        # pull out note stuff
+        oid = self.createID(item)
+
+        content = item["content"]
+        content = self.convertHTML(content)
+        
+        time = self.convertTime(item["published"])
+        time = self.convertHumanTime(time)
         
         try:
-            actor = note["actor"]["preferredUsername"]
+            actor = comment["author"]["preferredUsername"]
+            actor = self.fixJPopeBug(actor)
         except:
             actor = "Unknown"
         
-        # decide on the focus
-        focus = False
-        if self.__focus == note["object"]["id"]:
-            focus = True
- 
-        pumpid = note["object"]["id"]
-        if pumpid.startswith("http"):
-            pumpid = pumpid.split("/")[-1]
+        actor = "[%s]" % actor
+    
+        self._screen.append(
+            {
+                "id":oid,
+                "pumpid":item["id"],
+                "actor":actor,
+                "content":content,
+                "time":time
+            }
+        )
 
-        # okay now make the dict and add it to the screen
-        item = {
-            "id":oid,
-            "pumpid":pumpid,
-            "actor":actor,
-            "content":content,
-            "time":ts,
-            "focus":focus
-        }
+        if item["replies"]["totalItems"] == 0:
+            # not everyone love each other :(
+            return
 
-      
-        
-        self._screen.insert(0, item) 
-        # for now we'll fix it at 25 items
-        self.update()
-        return True # to say we added it
+        for comment in item["replies"]["items"]:
+            self.new_comment(comment)
+
+    def get_active_id(self):
+        return self._active_id
+
+    def set_active_id(self, pumpid):
+        """ Sets the current ID """
+        self.__active_id = pumpid
 
     def update(self):
         """ Updates the screen """
@@ -248,6 +262,7 @@ class Controller:
                 return "A century"
             else:
                 return "%s centuries" % c
+    
     def convertHTML(self, content):
         """ Convers the content of a message from HTML to an outputtable form """
         # for now lets just handle <br />

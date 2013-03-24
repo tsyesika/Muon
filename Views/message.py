@@ -5,6 +5,8 @@ from Views.abstract import View as Abstract_View
 
 class View(Abstract_View):
   
+    __name = "message"
+
     def __init__(self, display):
         """ initalised the curses interface """
         self.display = display

@@ -10,9 +10,15 @@ the view should NOT handle the input or be responsible for much. Keep it thin!!!
 
 class View:
 
+    __name = "" # name of view.
+
     def __init__(self, display):
         self.display = display
         self.screen = urwid.Pile([], 0) # holds the items on the screen, highly suggest you use this.
+
+    def get_name(self):
+        """ Gets the name of the view """
+        return self.__name
 
     def clear(self):
         """ This should clear what's on the screen """

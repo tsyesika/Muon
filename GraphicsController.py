@@ -22,6 +22,10 @@ class Controller:
     _keymap = {
     } # global non-overridable keys
 
+    
+    _previous_view_name = "" # view name
+    _previous_focus = "" # focus id on previous screen
+
     def __init__(self, backend):
         # load the views
         self.load_views()
@@ -41,6 +45,14 @@ class Controller:
         if not view in self._views:
             raise ControllerException("Can't find view named %s" % view)        
 
+    
+        if self._view != None:
+            # sets previouses.
+            self._previous_view_name = self._view.get_name()
+            self._previous_focus = self.controller().get_focus()
+            if self._previous_focus == None:
+                self._previous_focus = ""
+
         # view exists.
         if None != self._view:
             self._view.__del__()
@@ -52,6 +64,15 @@ class Controller:
 
         self._controller = self._controllers[view].Controller(self)
 
+    def back_view(self):
+        """ Returns to the last view """
+        if not self._previous_view_name:
+            return # can't do it
+        focus = self._previous_focus
+        self.change_view(self._previous_view_name)
+        self.controller().set_focus(focus)
+        self.controller().populate()
+    
     def handle_input(self, key):
         """ This is the glue between handling purely view 
             input (e.g. adding a letter on the screen)
