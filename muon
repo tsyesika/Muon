@@ -32,10 +32,6 @@ from configuration import configuration
 from GraphicsController import Controller
 
 class Pump(PyPump):
-    def set_client(self, client):
-        """ This sets the client so PyPump can ask the client to do things. """
-        self._client = client
-
     def get_access(self, token):
         """ This is called to ask the user to enter the varifer 
         The endpoint is: https://{server}/oauth/authorize?oauth_token={token}
@@ -46,11 +42,66 @@ class Pump(PyPump):
         verifier = verifier.replace(" ", "")
         return verifier
 
+    def set_client(self, client):
+        """ This sets the client so PyPump can ask the client to do things. """
+        self._client = client
+
 class Muon:
     
     gc = None
     pump = None
     webfinger = ""
+
+    def exit(self):
+        """ Tells this to exit """
+        sys.exit()
+
+    def initalise_pump(self):
+        """ This is only for pump initalisation for when we have all the data """
+        self.pump = Pump(
+                self.webfinger,
+                key=configuration[self.webfinger]["oauth"]["client_id"],
+                secret=configuration[self.webfinger]["oauth"]["client_secret"],
+                token=configuration[self.webfinger]["oauth"]["token"],
+                token_secret=configuration[self.webfinger]["oauth"]["token_secret"]
+        )
+
+    def get_item(self, pumpid):
+        """ Gets for a specific item """
+        item = self.pump.get_note(pumpid)
+        self.gc.controller().new_item(item)
+        self.gc.controller().update()
+
+    def get_verifer(self, token):
+        """ This should change the display to get the verifier 
+        once got it should return it
+        """
+        self.gc.change_view("get_verifier", token)
+        # setup a nonsense veriable for it to come in
+        self.verifer = ""
+        
+        while not self.verifer:
+            sleep(0.1)
+        
+        # we should have it
+        return self.verifier
+
+    def register_client(self):
+        """ Okay this is to register the client """
+        self.gc.change_view("register_client")
+        while not self.webfinger:
+            sleep(0.1)
+        self.pump(self.webfinger, client_name="Muon")
+
+    def request_tokens(self):
+        """ Gets access tokens for account """
+        if self.pump:
+            return False
+
+        self.pump = Pump(self.webfinger, 
+                    key=configuration[self.webfinger]["oauth"]["client_id"], 
+                    secret=configuration[self.webfinger]["oauth"]["client_secret"]
+                    ) 
 
     def run(self):
         """ Runs the Muon program """
@@ -88,12 +139,6 @@ class Muon:
             elif "item" == vname:
                self.get_item(self.gc.controller().get_active_id())
             sleep(60) 
-    
-    def get_item(self, pumpid):
-        """ Gets for a specific item """
-        item = self.pump.get_note(pumpid)
-        self.gc.controller().new_item(item)
-        self.gc.controller().update()
 
     def meanwhile(self):
         """ Polls the meanwhile stream """
@@ -102,37 +147,7 @@ class Muon:
             self.gc.controller().post_note(note)
         self.gc.controller().update()
 
-    def exit(self):
-        """ Tells this to exit """
-        sys.exit()
-
-    def register_client(self):
-        """ Okay this is to register the client """
-        self.gc.change_view("register_client")
-        while not self.webfinger:
-            sleep(0.1)
-        self.pump(self.webfinger, client_name="Muon")
-
-    def request_tokens(self):
-        """ Gets access tokens for account """
-        if self.pump:
-            return False
-
-        self.pump = Pump(self.webfinger, 
-                    key=configuration[self.webfinger]["oauth"]["client_id"], 
-                    secret=configuration[self.webfinger]["oauth"]["client_secret"]
-                    )
-    
-    def initalise_pump(self):
-        """ This is only for pump initalisation for when we have all the data """
-        self.pump = Pump(
-                self.webfinger,
-                key=configuration[self.webfinger]["oauth"]["client_id"],
-                secret=configuration[self.webfinger]["oauth"]["client_secret"],
-                token=configuration[self.webfinger]["oauth"]["token"],
-                token_secret=configuration[self.webfinger]["oauth"]["token_secret"]
-        )
-
+   
     ## saving to the config methods
     def save_client(self):
         """ This will save the CLIENT registration data """
@@ -153,20 +168,6 @@ class Muon:
     def set_webfinger(self, webfinger):
         """ Sets the webfinger e.g. username@example.com """
         self.webfinger = webfinger
-
-    def get_verifer(self, token):
-        """ This should change the display to get the verifier 
-        once got it should return it
-        """
-        self.gc.change_view("get_verifier", token)
-        # setup a nonsense veriable for it to come in
-        self.verifer = ""
-        
-        while not self.verifer:
-            sleep(0.1)
-        
-        # we should have it
-        return self.verifier
 
 if __name__ == "__main__":
     muon = Muon()

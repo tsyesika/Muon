@@ -2,7 +2,8 @@
 # This file is part of Muon.                                            
 #                                                                       
 # Muon is free software: you can redistribute it and/or modify          
-# it under the terms of the GNU General Public License as published by  # the Free Software Foundation, either version 3 of the License, or     
+# it under the terms of the GNU General Public License as published by  
+# the Free Software Foundation, either version 3 of the License, or     
 # (at your option) any later version.                                   
 #                                                                       
 # Muon is distributed in the hope that it will be useful,               
@@ -23,9 +24,9 @@ class Display():
         ('normal', 'default', 'black')
     ]
 
-    _elements = []
     _background = None # fixed.
     _display = None
+    _elements = []
 
     def __init__(self, gc):
         """ Initalises the display """
@@ -44,13 +45,13 @@ class Display():
 
         self._display.widget.original_widget = urwid.Pile([], 0)
 
-    def run(self):
-        """ Displays the Display (yes, seriously) """
-        self._display.run()
-
-    def redraw(self):
-        """ Use with care """
-        self._display.draw_screen()
+    def add_widget(self, widget):
+        """ This will add a widget to the display """
+        self._elements.append(widget)
+        self._display.widget.original_widget.contents.append((
+            widget,
+            self._display.widget.original_widget.options()
+        )) 
 
     def clear(self):
         """ Clears the elements off the display """
@@ -61,21 +62,21 @@ class Display():
         # double check people haven't been sneeky.
         self._display.widget.original_widget.contents = []
 
+    def exit(self):
+        """ Passes the exit to GraphicsController """
+        self._gc.exit()
+
     def input_handler(self, key):
         """ Hands the input back to the graphics controller """
         self._gc.handle_input(key)
 
+    def redraw(self):
+        """ Use with care """
+        self._display.draw_screen()
+ 
+    def run(self):
+        """ Displays the Display (yes, seriously) """
+        self._display.run()
+
     def update(self, screen):
         self._gc.update(screen)
-
-    def add_widget(self, widget):
-        """ This will add a widget to the display """
-        self._elements.append(widget)
-        self._display.widget.original_widget.contents.append((
-            widget,
-            self._display.widget.original_widget.options()
-        )) 
-
-    def exit(self):
-        """ Passes the exit to GraphicsController """
-        self._gc.exit()

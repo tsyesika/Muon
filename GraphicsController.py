@@ -2,7 +2,8 @@
 # This file is part of Muon.                                            
 #                                                                       
 # Muon is free software: you can redistribute it and/or modify          
-# it under the terms of the GNU General Public License as published by  # the Free Software Foundation, either version 3 of the License, or     
+# it under the terms of the GNU General Public License as published by  
+# the Free Software Foundation, either version 3 of the License, or     
 # (at your option) any later version.                                   
 #                                                                       
 # Muon is distributed in the hope that it will be useful,               
@@ -52,8 +53,15 @@ class Controller:
     
         self._keymap["esc"] = ["self._controller.exit", "self.backend.exit"]
 
-    def run(self):
-        self.display.run()
+    def back_view(self):
+        """ Returns to the last view """
+        if not self._previous_view_name:
+            return # can't do it
+        focus = self._previous_focus
+        self.change_view(self._previous_view_name)
+        self.controller().set_focus(focus)
+        self.controller().populate()
+ 
 
     def change_view(self, view, params=()):
         """ Will change the view """
@@ -80,15 +88,12 @@ class Controller:
 
         self._controller = self._controllers[view].Controller(self)
 
-    def back_view(self):
-        """ Returns to the last view """
-        if not self._previous_view_name:
-            return # can't do it
-        focus = self._previous_focus
-        self.change_view(self._previous_view_name)
-        self.controller().set_focus(focus)
-        self.controller().populate()
-    
+    def controller(self):
+        """ Returns the current view GC, if none, returns self """
+        if self._controller:
+            return self._controller
+        return self
+
     def handle_input(self, key):
         """ This is the glue between handling purely view 
             input (e.g. adding a letter on the screen)
@@ -108,18 +113,6 @@ class Controller:
                 # okay now hand it off to the specific GC
                 self._controller.handle_input(key)
 
-    def controller(self):
-        """ Returns the current view GC, if none, returns self """
-        if self._controller:
-            return self._controller
-        return self
-
-    def update(self, screen):
-        """ This will update the screen """
-        # ensure the screens clear
-        self._view.clear()
-        self._view.update(screen)
-
     def load_views(self):
         """ This will load the views """
         for view in glob("Views/*.py"):
@@ -132,8 +125,17 @@ class Controller:
             name = self.path_to_name(controller)
             self._controllers[name] = load_source(name, controller)
 
+    def run(self):
+        self.display.run()
+   
     def path_to_name(self, path):
         """ This will take a path convert to a name """
         base_name = os.path.basename(path)
         name = os.path.splitext(base_name)[0]
         return name
+
+    def update(self, screen):
+        """ This will update the screen """
+        # ensure the screens clear
+        self._view.clear()
+        self._view.update(screen)
