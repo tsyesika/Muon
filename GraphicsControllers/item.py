@@ -115,7 +115,7 @@ class Controller(Abstract):
     def new_comment(self, comment):
         """ Adds a new comment to the screen """
         oid = self.createID(comment)
-        content = comment.convertHTML(comment["content"])
+        content = self.convertHTML(comment["content"])
     
         time = self.convertTime(comment["published"])
         time = self.convertHumanTime(time)
@@ -128,7 +128,7 @@ class Controller(Abstract):
 
         actor = "[%s]" % actor
 
-        self._screen["comments"].append(
+        self._screen.append(
             {
                 "id":oid,
                 "pumpid":comment["id"],
@@ -138,9 +138,6 @@ class Controller(Abstract):
             }
         )
    
-    def get_name(self):
-        return "item"
-
     def new_item(self, item):
         """ Adds a new note to the screen """
         # pull out note stuff

@@ -66,9 +66,9 @@ class Muon:
                 token_secret=configuration[self.webfinger]["oauth"]["token_secret"]
         )
 
-    def get_item(self, pumpid):
+    def get_item(self, pumpid, otype="note"):
         """ Gets for a specific item """
-        item = self.pump.get_note(pumpid)
+        item = self.pump.get_note(pumpid, otype)
         self.gc.controller().new_item(item)
         self.gc.controller().update()
 

@@ -93,7 +93,7 @@ class Controller(Abstract):
             # okay we want to switch views to item view.
             pumpid = self.get_focused_pumpid()
             self.master.change_view("item")
-            self.master.backend.get_item(pumpid)
+            self.master.backend.get_item(pumpid[0], pumpid[1])
             return 
 
         elif "i" == key:
@@ -119,8 +119,10 @@ class Controller(Abstract):
 
         for note in self._screen:
             if note["id"] == self.__focus:
-                return note["pumpid"]
- 
+                if note["proxy"]:
+                    return (note["proxy"], "proxy")
+                return (note["pumpid"], "note") 
+    
     def populate(self):
         """ Populates view with what's needed """
         self.master.backend.meanwhile()
@@ -148,8 +150,12 @@ class Controller(Abstract):
             focus = True
  
         pumpid = note["object"]["id"]
+
+        proxy = None
         if pumpid.startswith("http"):
-            pumpid = pumpid.split("/")[-1]
+            if "pump_io" in note["object"] and "proxyURL" in note["object"]["pump_io"]:
+                proxy = note["object"]["pump_io"]["proxyURL"].split("/")[-1]
+
 
         # okay now make the dict and add it to the screen
         item = {
@@ -158,7 +164,8 @@ class Controller(Abstract):
             "actor":actor,
             "content":content,
             "time":ts,
-            "focus":focus
+            "focus":focus,
+            "proxy":proxy,
         }
 
       

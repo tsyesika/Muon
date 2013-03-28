@@ -56,11 +56,11 @@ class View(Abstract_View):
         # add the comments
         for comment in comments:
             self.comments.contents.append(
-                urwid.Columns([
+                (urwid.Columns([
                     urwid.AttrMap(urwid.Text(comment["content"]), "comment"),
                     urwid.AttrMap(urwid.Text(comment["time"], align="right"), "time")
-                ])
-            )
+                ]), self.comments.options())
+           )
 
         # finally we'll force draw the screen
         self.display.redraw()
