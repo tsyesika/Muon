@@ -1,0 +1,24 @@
+#!/home/jessica/Documents/Programming/Python/Muon/bin/python
+
+from xudd.hive import Hive 
+
+from pump import Pump
+from controller import Controller
+from ui import CLI
+
+if __name__ == "__main__":
+    hive = Hive()
+    
+    hive.create_actor(Pump, id="pump")
+    hive.create_actor(Controller, id="muon")
+
+    cli = CLI(hive)
+    
+    hive.send_message(
+        to="muon",
+        directive="setup",
+        body={"gui": cli}
+        )
+
+    hive.start()
+    cli.run()
