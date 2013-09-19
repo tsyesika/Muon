@@ -1,4 +1,4 @@
-#!/home/jessica/Documents/Programming/Python/Muon/bin/python
+#!/usr/bin/env python
 
 from xudd.hive import Hive 
 

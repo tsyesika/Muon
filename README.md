@@ -17,7 +17,7 @@ to install git. Once you've got git do:
 
 ```
 $ git clone https://github.com/xray7224/Muon.git
-$ virtualenv . && pip install pypump urwid
+$ virtualenv . && pip install pypump urwid xudd
 ```
 
 To update you can then just do:
