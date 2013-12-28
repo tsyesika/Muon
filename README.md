@@ -9,6 +9,11 @@ that it is likely going to be a while before It's usable for the general public.
 If you do wish to try it, awesome! Do remember things won't work, it won't be
 feature complete and it is likely to be increadably buggy.
 
+I'm not working on this (as i'm sure is obvious by the lack of recent commits),
+I hope to return to it at some point, I'm still accepting pull requests and this
+is a GPL v3 project so if you wish to fork that'd be awesome too! Most of my free
+time is currently going into the PyPump library.
+
 Installation
 ============
 
